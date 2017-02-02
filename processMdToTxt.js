@@ -14,17 +14,17 @@
 // CONFIG CLIENT OBJECT STORAGE
 var BLUEMIX_OBJECTSTORAGE_CREDENTIALS = {
   "auth_url": "https://identity.open.softlayer.com",
-  "project": "object_storage_dac5eed7_cc16_4b6a_94ba_d235f4af46d2",
-  "projectId": "701dc03c8ac543079de1fadc691f5d74",
+  "project": "",
+  "projectId": "",
   "region": "dallas",
-  "userId": "7ceb10bde8a14292832a6c919f060c87",
-  "username": "admin_d8d77571139d52e116a65026ae4c03f007bd12a0",
-  "password": "Fc.OP(g1?AO~4XzT",
-  "domainId": "aac4d15e639d466da6db6137553826b2",
-  "domainName": "1187701",
+  "userId": "",
+  "username": "",
+  "password": "",
+  "domainId": "",
+  "domainName": "",
   "role": "admin"
 };
-var BLUEMIX_OBJECTSTORAGE_CONTAINER = "EC-G6";
+var BLUEMIX_OBJECTSTORAGE_CONTAINER = "MyContainer";
 // -------------- END CONFIG ------------------
 
 // IMPORTS
@@ -50,19 +50,24 @@ var client, upload_container;
 
 // PROCESS FUNCTION - get file as input, process it, request upload
 function processFile(name, content) {
-	// md to txt
-	var txt = removeMd(content);
 
 	// .md to .txt
 	var name_parts = name.split('.');
-	if(name_parts.length > 1)
-		name_parts[name_parts.length - 1] = 'txt';
-	else
-		name_parts.push('txt');
-	name = name_parts.join('.');
+	
+	if(name_parts[name_parts.length - 1] === 'md') {
+		if(name_parts.length > 1)
+			name_parts[name_parts.length - 1] = 'txt';
+		else
+			name_parts.push('txt');
+		
+		name = name_parts.join('.');
+		
+		// md to txt
+		var txt = removeMd(content);
 
-	// let's upload
-	upload(name, txt);
+		// let's upload
+		upload(name, txt);
+	}
 }
 
 // UPLOAD FUNCTION - upload the output file to bluemix
