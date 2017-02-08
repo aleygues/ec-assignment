@@ -1,4 +1,4 @@
-# Real time file processing
+# Real time file processing - GitHub - Bluemix
 
 This is an implementation of the real time file processing architecture on IBM Bluemix. This implementation track changes made on a GitHub repository (push events) and proccess automatically all markdown files (.md) found in the push in order to get them in HTML and TXT format.
 
@@ -7,6 +7,12 @@ This implementation uses the following components:
 * a [GitHub](https://github.com/) repository
 * an [IBM Bluemix Object Storage](https://console.ng.bluemix.net/catalog/object-storage/) instance
 * some [IBM Bluemix OpenWhisk](https://developer.ibm.com/openwhisk/) functions
+
+The implementation looks like:
+
+![Implementation architecture](http://aleygues.fr/gp_bm_archi.png)
+
+*Note that in the implementation, the GitHub repo is our input bucket to store input Markdown files to process. Bluemix Object Storage is our output bucket and will recieve the processed (HTML or plaintext) files. Goals of implementation and tests are to push Markdown files to GitHub and get processed files in our Bluemix Object Storage online panel.* 
 
 To process inputs files and get them in different format, JavaScript running on NodeJS is used with the following modules:
 
@@ -31,6 +37,8 @@ Create a new GitHub repo (to push files into). Then go to account settings perso
 
 Go to [IBM Bluemix OpenWhisk](https://developer.ibm.com/openwhisk/), click on "Using CLI". Download the CLI and install it. Get your token (they are written in the middle of the page to download OpenWhisk CLI).
 
+If you want to know more about OpenWhisk functions, check out [the documentation](https://console.ng.bluemix.net/docs/openwhisk/index.html#getting-started-with-openwhisk).
+
 ## Step 3: setup Object storage instance
 
 Go to Bluemix and create a new  [IBM Bluemix Object Storage](https://console.ng.bluemix.net/catalog/object-storage/) service (under service, storage, object storage). Choose the free plan. When the service is ready, go to its configuration panel and create new credentials. These credentials are in JSON format and should look like:
@@ -49,6 +57,8 @@ Go to Bluemix and create a new  [IBM Bluemix Object Storage](https://console.ng.
     };
 
 You **don't need** to create a new container. In fact the container to upload output files will be automatically created if it does not exist.
+
+If you want to know more about how Object Storage service works, check out [the documentation](https://console.ng.bluemix.net/docs/services/ObjectStorage/index.html).
 
 ## Step 4: prepare processor functions
 
@@ -87,11 +97,15 @@ Listen for changes on GitHub account (username, repository name, and access toke
 
     ./wsk package bind /whisk.system/github myGit --param username USERNAME --param repository REPONAME --param accessToken ACCESSTOKEN
 
-Create trigger to get notify action from GitHub
+Now we are able to listen for changes on the GitHub repo. We should now bind this listener with a trigger. Then each change on GitHub will fired this trigger. 
+
+Create **trigger** to get notification events from GitHub
 
     ./wsk trigger create myGitTrigger --feed myGit/webhook --param events push
 
-Prepare actions (process functions **modified with config**) using path to JS files
+Now OpenWhisk trigger is fired when changes occur on GitHub. But we want to execute pieces of JS code when changes occur.
+
+Prepare **actions** (process functions **modified with config**) using path to JS files
 
     ./wsk action create processMdToHtml path/to/processMdToHtml.js 
     ./wsk action create processMdToTxt path/to/processMdToTxt.js 
@@ -101,12 +115,12 @@ If you make some modifications on these files, you can update them running these
     ./wsk action update processMdToHtml path/to/processMdToHtml.js 
     ./wsk action update processMdToTxt path/to/processMdToTxt.js 
 
-Bind the actions and the trigger using rules
+Now both trigger and actions are set, we have to bind them using **rules** to execute actions when changes occur on GitHub
 
     ./wsk rule create mdToHtml myGitTrigger processMdToHtml
     ./wsk rule create mdToTxt myGitTrigger processMdToTxt
 
-Keep in mind you can know current rules/actions/triggers using the browser interface or run theses commands 
+Keep in mind you can know current rules/actions/triggers using the browser interface or run these commands 
 
     ./wsk rule list
     ./wsk action list
@@ -123,7 +137,7 @@ Create a file
 
     touch test_file.md
 
-Write in the file something like (note that this is markdown contents): 
+Write in the file something like (note that this is Markdown content): 
 
     ## This is a test 
     
